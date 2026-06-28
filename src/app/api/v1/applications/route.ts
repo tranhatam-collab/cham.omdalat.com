@@ -7,7 +7,7 @@ const DATA_FILE = path.join(DATA_DIR, "applications.json");
 const AUDIT_FILE = path.join(DATA_DIR, "audit.json");
 
 const CONSENT_VERSION = "2026-06-28-v1";
-const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET || "0x4AAAAAAAWfBZgRsMs3HwT4";
+const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET || "0x4AAAAAADsJjFdzrv_34FGPBUoIX6jK8go";
 
 // Simple in-memory rate limiter
 const rateLimit = new Map<string, { count: number; resetAt: number }>();

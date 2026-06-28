@@ -49,7 +49,7 @@ export default function RegisterForm({ dict, locale }: Props) {
     const checkTurnstile = setInterval(() => {
       if (window.turnstile && containerRef.current && !widgetRef.current) {
         const id = window.turnstile.render(containerRef.current, {
-          sitekey: "0x4AAAAAAAWfBZgRsMs3HwT4",
+          sitekey: "0x4AAAAAADsJjHR20q_k4efh",
           callback: (token: string) => setTurnstileToken(token),
           "expired-callback": () => setTurnstileToken(null),
           "error-callback": () => setTurnstileToken(null),
