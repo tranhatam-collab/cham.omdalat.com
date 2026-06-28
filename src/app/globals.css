@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-om-bg: #eef4ef;
+  --color-om-bg-deep: #0f3d2e;
+  --color-om-surface: rgba(255, 255, 255, 0.78);
+  --color-om-surface-strong: rgba(255, 255, 255, 0.9);
+  --color-om-text: #153126;
+  --color-om-muted: #4f675d;
+  --color-om-line: rgba(21, 49, 38, 0.12);
+  --color-om-green-900: #0f3d2e;
+  --color-om-green-700: #1e7a5b;
+  --color-om-green-500: #4fc38a;
+  --color-om-green-300: #b7f3cf;
+  --color-om-earth-500: #8b6b4f;
+  --color-om-card: rgba(255, 255, 255, 0.78);
+
+  --radius-om: 8px;
+
+  --font-heading: "Iowan Old Style", "Palatino Linotype", "Book Antiqua",
+    serif;
+  --font-body: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
+}
+
+* {
+  border-color: var(--color-om-line);
+}
+
+body {
+  background-color: var(--color-om-bg);
+  color: var(--color-om-text);
+  font-family: var(--font-body);
+  background-image: radial-gradient(
+      circle at top left,
+      rgba(79, 195, 138, 0.24),
+      transparent 24rem
+    ),
+    linear-gradient(180deg, var(--color-om-bg) 0, #dce8df 100%);
+  background-attachment: fixed;
+}
