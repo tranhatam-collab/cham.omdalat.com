@@ -7,6 +7,24 @@ const DATA_FILE = path.join(DATA_DIR, "applications.json");
 const AUDIT_FILE = path.join(DATA_DIR, "audit.json");
 
 const CONSENT_VERSION = "2026-06-28-v1";
+const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET || "0x4AAAAAAAWfBZgRsMs3HwT4";
+
+// Simple in-memory rate limiter
+const rateLimit = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 5; // 5 requests per window per IP
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimit.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimit.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
 
 function readJson(filePath: string): Record<string, unknown>[] {
   try {
@@ -37,9 +55,56 @@ function generateId(): string {
   return `CHAM-${ts}-${rand}`;
 }
 
+async function verifyTurnstileToken(token: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secret: TURNSTILE_SECRET,
+          response: token,
+        }),
+      }
+    );
+    const data = await res.json();
+    return data.success === true;
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: Request) {
   try {
+    const ip =
+      request.headers.get("cf-connecting-ip") ||
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "unknown";
+
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait before trying again." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
+
+    // Verify Turnstile token
+    if (!body.turnstileToken) {
+      return NextResponse.json(
+        { error: "Security check required." },
+        { status: 400 }
+      );
+    }
+    const isValid = await verifyTurnstileToken(body.turnstileToken);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: "Security check failed." },
+        { status: 400 }
+      );
+    }
 
     const requiredFields = ["full_name", "email"];
     for (const field of requiredFields) {
@@ -55,7 +120,31 @@ export async function POST(request: Request) {
 
     const application: Record<string, unknown> = {
       applicationId,
-      ...body,
+      full_name: body.full_name,
+      email: body.email,
+      phone: body.phone || "",
+      current_location: body.current_location || "",
+      preferred_language: body.preferred_language || "",
+      timezone: body.timezone || "",
+      current_role: body.current_role || "",
+      years_experience: body.years_experience || "",
+      current_tension: body.current_tension || "",
+      wants_to_stop: body.wants_to_stop || "",
+      wants_to_try: body.wants_to_try || "",
+      recognized_skills: body.recognized_skills || "",
+      underused_strengths: body.underused_strengths || "",
+      portfolio_url: body.portfolio_url || "",
+      proud_project: body.proud_project || "",
+      change_story: body.change_story || "",
+      weekly_hours: body.weekly_hours || "",
+      desired_path: body.desired_path || "",
+      ready_for_experiment: body.ready_for_experiment || "",
+      paid_program_interest: body.paid_program_interest || "",
+      budget_range: body.budget_range || "",
+      start_window: body.start_window || "",
+      requiredConsent: body.requiredConsent || [],
+      optionalConsent: Boolean(body.optionalConsent),
+      locale: body.locale || "vi",
       consentVersion: CONSENT_VERSION,
       createdAt: new Date().toISOString(),
     };
