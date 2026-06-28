@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "changeme-in-production";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Root → /vi redirect
