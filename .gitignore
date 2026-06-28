@@ -6,6 +6,8 @@ node_modules/
 # next.js
 .next/
 out/
+.open-next/
+.worker-next/
 
 # production
 build/
