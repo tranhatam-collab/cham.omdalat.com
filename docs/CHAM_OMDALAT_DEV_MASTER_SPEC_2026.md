@@ -290,6 +290,22 @@ Chỉ build platform lớn khi:
 - người dùng quay lại;
 - chi phí phục vụ hợp lý.
 
+## Gate measurement protocol (bắt buộc)
+
+Mỗi gate phải khai báo đủ:
+
+- source of truth (DB table, event name, report file);
+- công thức tính;
+- chu kỳ đo;
+- owner chịu trách nhiệm ký xác nhận.
+
+Chuẩn đo lường:
+
+- G1: interview_log, `problem_confirmed_rate = interviews_with_pain / total_interviews`, đo theo tuần, owner Program Admin.
+- G2: applications + payment_log, `commitment_count` và `real_paid_count`, đo theo tuần, owner Operations.
+- G3: experiments/outcomes/opportunities, `experiment_rate`, `evidence_rate`, `opportunity_count`, đo theo cohort, owner Program Admin + Analyst.
+- G4: cohort_report + finance_report, retention và unit economics theo tháng, owner Founder + Analyst.
+
 ---
 
 # 5. ROUTES
@@ -799,6 +815,59 @@ GET    /api/v1/version
 
 All admin write routes require auth, role check and audit log.
 
+## 12.1 API contract tối thiểu
+
+### POST /api/v1/applications
+
+Request body tối thiểu:
+
+- `full_name` string non-empty;
+- `email` valid email;
+- `requiredConsent` boolean[] (tất cả phải true);
+- `turnstileToken` string non-empty;
+- `locale` in `vi|en`.
+
+Success:
+
+- `201` `{ "applicationId": "CHAM-..." }`
+
+Error:
+
+- `400` invalid input / thiếu consent / turnstile fail;
+- `429` rate limited;
+- `500` internal error.
+
+### POST /api/v1/admin/login
+
+Request:
+
+- `username` string;
+- `password` string.
+
+Success:
+
+- `200` `{ "success": true, "role": "<role>" }`;
+- set httpOnly secure session cookie.
+
+Error:
+
+- `400` malformed payload;
+- `401` invalid credentials;
+- `500` internal error.
+
+### GET /api/v1/applications
+
+- admin-only; yêu cầu session hợp lệ;
+- `200` trả danh sách application;
+- `401` nếu chưa auth.
+
+## 12.2 Versioning và compatibility
+
+- public contract theo prefix `/api/v1/*`;
+- thay đổi breaking phải tăng version (`/api/v2/*`);
+- bổ sung field theo hướng backward-compatible;
+- response lỗi thống nhất dạng `{ "error": "<message>" }`.
+
 ---
 
 # 13. CONTENT SYSTEM
@@ -1105,6 +1174,18 @@ Security headers:
 
 Khuyến nghị Cloudflare-native hoặc modular monolith.
 
+## Stack lock (Founder decision)
+
+Khóa kiến trúc cho giai đoạn hiện tại:
+
+- Next.js App Router;
+- Cloudflare Pages deployment;
+- Cloudflare Turnstile;
+- monolith repository;
+- không microservices/kubernetes.
+
+Option B chỉ là phương án dự phòng khi có quyết định Founder mới bằng văn bản.
+
 ## Option A
 
 - Astro hoặc Next.js static/hybrid;
@@ -1292,6 +1373,13 @@ Canonical, hreflang, sitemap, schema, no fallback.
 
 Mobile, accessibility, security, performance, không còn P0/P1.
 
+R4 chỉ pass khi có đủ artifact:
+
+- accessibility report (axe hoặc tương đương);
+- performance report (Lighthouse hoặc tương đương);
+- security checklist có timestamp;
+- danh sách issue còn mở kèm mức độ.
+
 ## R5 — Evidence packet
 
 Phải có:
@@ -1315,6 +1403,30 @@ Không có evidence packet thì không được nói "hoàn tất".
 ---
 
 # 24. BACKLOG
+
+## 24.0 Execution governance (bắt buộc)
+
+Mỗi backlog item phải có:
+
+- owner (team + người phụ trách);
+- estimate (S/M/L hoặc giờ);
+- dependency;
+- target milestone;
+- acceptance criteria;
+- evidence path trong `docs/`.
+
+Không có đủ metadata trên thì item không được chuyển sang in_progress.
+
+## 24.1 Owner & milestone matrix
+
+| Backlog | Owner team | Primary owner | Dependency | Target milestone | Evidence path |
+|---|---|---|---|---|---|
+| P0 | Team 1 + Team 2 | Architecture Lead | Founder lock | M0 | `docs/QA_AUDIT_REPORT.md` |
+| P1 | Team 2 | Web Lead | P0 | M1 | `docs/QA_AUDIT_REPORT.md` |
+| P2 | Team 3 | Operations Lead | P0, P1 | M2 | `docs/EVIDENCE_PACKET_R5.md` |
+| P3 | Team 2 | Content Lead | P1 | M3 | `docs/QA_AUDIT_REPORT.md` |
+| P4 | Team 3 | Program Ops Lead | P2 | M4 | `docs/QA_AUDIT_REPORT.md` |
+| P5 | Team 1 | QA Lead | P1, P2, P3 | M5 | `docs/EVIDENCE_PACKET_R5.md` |
 
 ## P0
 

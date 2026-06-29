@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Sparkles } from "lucide-react";
 import { getDictionary, type Locale } from "@/lib/dictionary";
-import RegisterForm from "./register-form";
+import RegisterForm from "@/components/register-form";
 
 type Props = {
   params: Promise<{ locale: string }>;

@@ -1,6 +1,8 @@
 import { FileText } from "lucide-react";
 import * as fs from "fs";
 import * as path from "path";
+import { redirect } from "next/navigation";
+import { getAdminSessionFromCookies } from "@/lib/admin-auth";
 
 const DATA_FILE = path.join(process.cwd(), "src", "data", "applications.json");
 
@@ -23,7 +25,12 @@ function getApplications(): Application[] {
   }
 }
 
-export default function AdminApplicationsPage() {
+export default async function AdminApplicationsPage() {
+  const session = await getAdminSessionFromCookies();
+  if (!session) {
+    redirect("/admin/login");
+  }
+
   const applications = getApplications();
 
   return (
@@ -35,8 +42,17 @@ export default function AdminApplicationsPage() {
             Applications
           </h1>
           <span className="text-sm text-[--color-om-muted]">
+            ({session.username} • {session.role})
+          </span>
+          <span className="text-sm text-[--color-om-muted]">
             ({applications.length} total)
           </span>
+          <a
+            href="/admin/logout"
+            className="ml-auto text-sm text-[--color-om-green-700] hover:underline"
+          >
+            Sign out
+          </a>
         </div>
 
         {applications.length === 0 ? (

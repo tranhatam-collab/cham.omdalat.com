@@ -3,16 +3,16 @@
 ## Build Status: ✅ PASS
 - **Next.js 16.2.9** — Compiled in 3.1s
 - **TypeScript** — Passed (no errors)
-- **Routes** — 44 generated (38 locale + 3 admin + 3 API)
-- **Middleware** — `proxy.ts` active (root redirect + admin auth)
+- **Routes** — 45 generated (38 locale + 4 admin + 3 API)
+- **Admin route guard** — Server-side guard active (signed session cookie)
 - **Deprecation warnings** — 0
 
-## Route Audit — 44/44 Routes
+## Route Audit — 45/45 Routes
 
 ### Public Pages (38 locale routes)
 | Route Pattern | VI | EN | Status |
 |--------------|----|----|--------|
-| `/` → `/vi` | Redirect | Redirect via proxy.ts | ✅ |
+| `/` → `/vi` | Redirect | Redirect via root route | ✅ |
 | `/` locale root | Homepage (hero + 6 sections) | Same structure | ✅ |
 | `/cham-la-gi` / `/what-is-cham` | Definition + not-list + values | Same | ✅ |
 | `/hanh-trinh` / `/journey` | 4-step detailed journey | Same | ✅ |
@@ -40,8 +40,9 @@
 | Route | Status | Notes |
 |-------|--------|-------|
 | `/admin` | ✅ | Redirects to `/admin/applications` |
-| `/admin/login` | ✅ | Auth form → POST `/api/v1/admin/login` → sets session cookie |
-| `/admin/applications` | ✅ | Protected by middleware; displays application table |
+| `/admin/login` | ✅ | Auth form (username + password) → POST `/api/v1/admin/login` → sets signed session cookie |
+| `/admin/applications` | ✅ | Protected by server-side session guard; displays application table |
+| `/admin/logout` | ✅ | Clears session cookie → redirects to `/admin/login` |
 
 ### API Routes
 | Route | Method | Status | Notes |
@@ -49,7 +50,7 @@
 | `/api/v1/health` | GET | ✅ | Returns `{ status: "ok", version: "1.0.0" }` |
 | `/api/v1/applications` | POST | ✅ | Turnstile verify + rate limit + validation + audit |
 | `/api/v1/applications` | GET | ✅ | Returns all applications (admin use) |
-| `/api/v1/admin/login` | POST | ✅ | Validates password, sets `admin_session` cookie |
+| `/api/v1/admin/login` | POST | ✅ | Validates username + password (timing-safe), sets signed `admin_session` cookie |
 
 ### Special Routes
 | Route | Status | Notes |
@@ -84,7 +85,7 @@
 | X-XSS-Protection: 1; mode=block | ✅ | `next.config.ts` |
 | Turnstile bot protection | ✅ | Form → server verify |
 | Rate limiting (5 req/min/IP) | ✅ | In-memory on POST applications |
-| Admin auth guard | ✅ | Cookie-based in proxy.ts |
+| Admin auth guard | ✅ | Signed cookie + server-side session check |
 | HTTPS | ✅ | Cloudflare SSL |
 | Consent version tracking | ✅ | `consentVersion: "2026-06-28-v1"` |
 | Audit log | ✅ | `src/data/audit.json` |
@@ -143,11 +144,10 @@
 2. **Images**: `public/images/` is empty. No hero images, article images, or OG images.
 3. **Email**: Registration does not send email notification (deferred to P2).
 4. **Automated tests**: No test suite (P5 backlog).
-5. **Form duplication**: `register-form.tsx` duplicated in `dang-ky/` and `apply/`.
-6. **Admin auth**: Single shared password, no per-user auth.
+5. **Accessibility/performance evidence**: Automated scans still pending for strict R4 artifact completeness.
 
 ## Verdict
 
-**READY FOR PRODUCTION (G1 — Gate 1).** All critical gates pass. The site is independent, bilingual, secure, and functional for initial user intake. Remaining P3–P5 items (articles, images, email, tests) do not block go-live per spec prioritization.
+**READY FOR G1 INTAKE LAUNCH, NOT FULL R4/R5 CLOSURE.** The site is independent, bilingual, secure for initial intake, and operational for G1 scope. Remaining P3–P5 items and missing accessibility/performance artifacts still block strict full-gate closure.
 
 Evidence packet: `docs/EVIDENCE_PACKET_R5.md`

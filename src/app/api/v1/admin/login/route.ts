@@ -1,29 +1,43 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "changeme-in-production";
+import {
+  ADMIN_SESSION_COOKIE,
+  authenticateAdmin,
+  buildAdminSession,
+  createAdminSessionToken,
+  getAdminSessionMaxAge,
+} from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
   try {
-    const { password } = await request.json();
+    const { username, password } = await request.json();
 
-    if (password !== ADMIN_PASSWORD) {
+    if (typeof username !== "string" || typeof password !== "string") {
       return NextResponse.json(
-        { error: "Invalid password" },
-        { status: 401 }
+       { error: "Invalid credentials" },
+       { status: 400 }
       );
     }
 
+    const user = authenticateAdmin(username, password);
+    if (!user) {
+      return NextResponse.json(
+       { error: "Invalid credentials" },
+       { status: 401 }
+      );
+    }
+
+    const sessionToken = createAdminSessionToken(buildAdminSession(user));
     const cookieStore = await cookies();
-    cookieStore.set("admin_session", ADMIN_PASSWORD, {
+    cookieStore.set(ADMIN_SESSION_COOKIE, sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      path: "/admin",
-      maxAge: 60 * 60 * 24, // 24 hours
+      path: "/",
+      maxAge: getAdminSessionMaxAge(),
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, role: user.role });
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import * as fs from "fs";
 import * as path from "path";
+import { getAdminSessionFromCookies } from "@/lib/admin-auth";
 
 const DATA_DIR = path.join(process.cwd(), "src", "data");
 const DATA_FILE = path.join(DATA_DIR, "applications.json");
@@ -177,6 +178,11 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  const session = await getAdminSessionFromCookies();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const applications = readJson(DATA_FILE);
   return NextResponse.json(applications);
 }

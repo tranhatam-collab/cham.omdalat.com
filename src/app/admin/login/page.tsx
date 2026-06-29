@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [username, setUsername] = useState("admin");
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -16,12 +17,13 @@ export default function AdminLoginPage() {
 
     const form = new FormData(e.currentTarget);
     const password = form.get("password") as string;
+    const currentUsername = form.get("username") as string;
 
     try {
       const res = await fetch("/api/v1/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username: currentUsername, password }),
       });
 
       if (res.ok) {
@@ -54,6 +56,20 @@ export default function AdminLoginPage() {
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[--color-om-text] mb-1">
+                Username
+              </label>
+              <input
+                name="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-[--radius-om] border border-[rgba(21,49,38,0.12)] bg-[rgba(255,255,255,0.9)] text-sm text-[--color-om-text] placeholder:text-[--color-om-muted] focus:outline-none focus:ring-2 focus:ring-[--color-om-green-500]"
+                placeholder="admin"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-[--color-om-text] mb-1">
                 Password

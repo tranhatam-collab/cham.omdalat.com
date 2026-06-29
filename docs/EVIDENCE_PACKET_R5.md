@@ -6,8 +6,8 @@
 - **Provider:** GitHub
 - **URL:** https://github.com/tranhatam-collab/cham.omdalat.com
 - **Branch:** `master`
-- **Full commit SHA:** `ebbcf6c43e68f2b3eee95caf4b26c5dffe15a494`
-- **Date:** 2026-06-28
+- **Full commit SHA:** `ebbcf6c43e68f2b3eee95caf4b26c5dffe15a494` (initial R5 go-live; this commit = incremental hardening)
+- **Date:** 2026-06-29
 
 ### 2. Build Command
 ```
@@ -18,8 +18,8 @@ npm run build
 ```
 ✓ Compiled successfully
 ✓ TypeScript passed
-✓ 44 routes generated
-  0 errors, 0 warnings (excluding proxy rename notice)
+✓ 45 routes generated (38 locale + 4 admin + 3 API)
+  0 errors, 0 warnings
 ```
 
 ### 4. Test Output
@@ -43,9 +43,9 @@ Cloudflare Pages supports instant rollback to any previous deployment via dashbo
 | 1 | Articles have placeholder content only | P3 | 10 articles in `docs/` for Dreams; Cham articles need writing |
 | 2 | No images in `public/images/` | P3 | Image briefs defined but photos not yet captured |
 | 3 | Automated test suite not implemented | P5 | Manual QA performed only |
-| 4 | The `faq` and `cau-hoi-thuong-gap` pages duplicate code | P4 | Both use identical component; should be shared |
-| 5 | `register-form.tsx` duplicated in `dang-ky/` and `apply/` | P4 | Should be extracted to `src/components/` |
-| 6 | Admin login uses single shared password | P3 | No per-user auth; acceptable for G1 |
+| 4 | Automated test suite is not implemented | P5 | Manual verification currently used |
+| 5 | Accessibility and Lighthouse artifacts are not attached yet | P5 | Required for strict R4 closure |
+| 6 | Articles and media package are still placeholder content | P3 | 10 VI + 10 EN + image register pending |
 
 ### 8. Release Gates Checklist
 
@@ -80,12 +80,12 @@ Cloudflare Pages supports instant rollback to any previous deployment via dashbo
 - [x] robots.txt
 - [x] No EN → VI fallback (localized 404 served)
 
-#### R4 — QA ✅
+#### R4 — QA ⚠️ (partial)
 - [x] Mobile-responsive (Tailwind grid, sticky header, stacked layout)
 - [x] Security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, X-XSS-Protection)
 - [x] Turnstile bot protection on registration form
 - [x] Rate limiting (5 req/min/IP on POST)
-- [x] Admin auth guard (cookie-based middleware)
+- [x] Admin auth guard (signed cookie + server-side session checks)
 - [x] HTTPS enforced (Cloudflare)
 - [ ] Accessibility audit (pending automated scan)
 - [ ] Performance audit (pending Lighthouse)
@@ -144,9 +144,10 @@ Route (app)
 ├ ƒ /[locale]/trai-nghiem
 ├ ƒ /[locale]/trao-lai
 ├ ƒ /[locale]/what-is-cham
-├ ○ /admin
-├ ○ /admin/applications
+├ ƒ /admin
+├ ƒ /admin/applications
 ├ ○ /admin/login
+├ ƒ /admin/logout
 ├ ƒ /api/v1/admin/login
 ├ ƒ /api/v1/applications
 ├ ƒ /api/v1/health
